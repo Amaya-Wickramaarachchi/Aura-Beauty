@@ -2,6 +2,8 @@
 
 **Aura Beauty** is an e-commerce website dedicated to premium skincare and cosmetics. It offers a user-friendly, personalized shopping experience, featuring a product-matching quiz, customer account management, and a seamless cart and checkout system.
 
+🌐 **Visit the website:** [Aura Beauty](http://aurabeauty.infinityfreeapp.com/)
+
 ## 📑 Table of Contents
 
 - [✨ Features](#features)
