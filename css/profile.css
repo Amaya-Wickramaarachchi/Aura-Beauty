@@ -1,0 +1,182 @@
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: #f5eff4;
+            margin-top: 100px;
+            padding:0;
+            color: #333;
+        }
+        h1 {
+            color: #6f0936; 
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .profile-container {
+            width:auto;
+            max-width: 80%;
+            margin: 150px auto;
+            padding: 20px;
+            background-color: rgba(250, 246, 249, 1);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .profile-container:hover {
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #444;
+        }
+        input[type="text"],
+        input[type="date"],
+        input[type="tel"],
+        textarea {
+            width: 95%;
+            padding: 10px;
+            font-size: 14px;
+            background-color: rgba(250, 246, 249, 1);
+            border: 1px solid rgba(250, 246, 249, 1);
+            border-bottom: 1px solid #6f0936;
+            margin-bottom: 15px;
+            outline: none;
+            color: #6f0936;
+        }
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        input[type="tel"]:focus,
+        textarea:focus {
+            border-color: #6f0936;
+        }
+        .profile-btn, .admin-btn {
+            width: 100%;
+            margin-top:10px;
+            padding: 10px;
+            background-color: #6f0936;
+            color: white;
+            border: 1px solid #6f0936;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            letter-spacing:1px;
+        }
+        .profile-btn:hover, .admin-btn:hover {
+            background-color: #f5eff4;
+            color: #6f0936;
+            border: 1px solid #6f0936;
+        }
+        
+        .order-history-container {
+            width:auto;
+            margin-top: 30px;
+        }
+        .order-history {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            
+        }
+        .order-history th,
+        .order-history td {
+            padding: 12px;
+            border: 1px solid #ccc;
+        }
+        .order-history th {
+            background-color: #f2f2f2;
+            color: #6f0934;
+            font-weight: bold;
+        }
+        .order-history tr:hover {
+            background-color: #f9f9f9;
+        }
+        .message {
+            color: green;
+            margin: 10px 0;
+            font-weight: bold;
+            text-align: center;
+        }
+        @media (max-width: 768px) {
+            .profile-container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 1.8em;
+            }
+        }
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.6em;
+            }
+            input[type="text"],
+            input[type="tel"],
+            textarea {
+                font-size: 0.9em;
+            }
+        }
+        .delete-btn {
+            background-color: #ff6666;
+            border-color: #ff6666;
+            color: white;
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            letter-spacing:1px;
+        }
+        .delete-btn:hover {
+            background-color: #ff9999;
+        }
+        .logout-btn {
+            width: 100%;
+            padding: 10px;
+            background-color: #6f0936;
+            color: white;
+            border: 1px solid #6f0936;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top:10px;
+            letter-spacing:1px;
+
+        }
+        .logout-btn:hover {
+            background-color: #f5eff4;
+            color: #6f0936;
+            border: 1px solid #6f0936;
+        }
+        .track-order-btn {
+            width: 100%;
+            padding: 10px;
+            background-color: #6f0936;
+            color: white;
+            border: 1px solid #6f0936;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top:10px;
+            letter-spacing:1px;
+        }
+        .track-order-btn:hover {
+            background-color: #f5eff4;
+            color: #6f0936;
+            border: 1px solid #6f0936;
+        }
+        select{
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 0px;
+            border: 1px solid #fdfbf8;
+            box-sizing: border-box;
+            background-color: rgba(250, 246, 249, 1);
+            border-bottom: 1px solid #6f0936;
+        }
