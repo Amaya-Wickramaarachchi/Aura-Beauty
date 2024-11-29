@@ -18,17 +18,15 @@ $conn = new mysqli($host, $user, $pass, $db);
 // Check connection
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
-
 }
 
 // Get user's email
 $user_email = $_SESSION['user_email'] ?? null;
 
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['item_id'])) {
     $item_id = $_POST['item_id'];
 
-    // Delete  item from the cart table
+    // Delete item from the cart table
     $stmt = $conn->prepare('DELETE FROM cart WHERE id = ? AND user_id = ?');
     $stmt->bind_param('is', $item_id, $user_email);
     $stmt->execute();
@@ -45,8 +43,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['item_id'])) {
 
 // Fetch cart items for the user
 $cartItems = [];
+// Fetch cart items for the user, including discount calculation
 if ($user_email) {
-    $stmt = $conn->prepare('SELECT c.id, p.name, p.price, c.quantity FROM cart c JOIN products p ON c.product_id = p.id WHERE c.user_id = ?');
+    $stmt = $conn->prepare('
+        SELECT 
+            c.id, 
+            p.name, 
+            p.price, 
+            p.discount,
+            c.quantity,
+            CASE 
+                WHEN p.discount > 0 
+                THEN p.price * (1 - p.discount / 100) 
+                ELSE p.price 
+            END AS final_price 
+        FROM 
+            cart c 
+            JOIN products p ON c.product_id = p.id 
+        WHERE 
+            c.user_id = ?');
     $stmt->bind_param('s', $user_email);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -154,6 +169,13 @@ $total = calculateTotal($cartItems);
         .remove-icon:hover {
             color: #6f0936;
         }
+
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            font-size: 1.2em;
+            color: #6f0936;
+        }
     </style>
 </head>
 <body>
@@ -174,84 +196,91 @@ $total = calculateTotal($cartItems);
             </tr>
         </thead>
         <tbody>
-            <?php if (count($cartItems) > 0): ?>
-                <?php foreach ($cartItems as $item): ?>
-                    <tr id="item-<?php echo $item['id']; ?>">
-                        <td>
-                            <input type="checkbox" class="item-checkbox" data-price="<?php echo $item['price']; ?>" data-quantity="<?php echo $item['quantity']; ?>" value="<?php echo $item['id']; ?>" onchange="updateTotal()">
-                        </td>
-                        <td><?php echo htmlspecialchars($item['name']); ?></td>
-                        <td>$<?php echo htmlspecialchars(number_format($item['price'], 2)); ?></td>
-                        <td><?php echo htmlspecialchars($item['quantity']); ?></td>
-                        <td>
-                            <i class="fas fa-trash remove-icon" title="Remove from cart" onclick="removeFromCart(<?php echo $item['id']; ?>);"></i>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <tr>
-                    <td colspan="5">Your cart is empty! <a href="products.php">Continue Shopping</a></td>
-                </tr>
-            <?php endif; ?>
-        </tbody>
+    <?php if (count($cartItems) > 0): ?>
+        <?php foreach ($cartItems as $item): ?>
+            <tr id="item-<?php echo $item['id']; ?>">
+                <td>
+                    <input type="checkbox" class="item-checkbox" data-price="<?php echo $item['final_price']; ?>" data-quantity="<?php echo $item['quantity']; ?>" value="<?php echo $item['id']; ?>" onchange="updateTotal()">
+                </td>
+                <td><?php echo htmlspecialchars($item['name']); ?></td>
+                <td>
+                    <?php if ($item['discount'] > 0): ?>
+                        <span style="text-decoration: line-through; color: #999;">$<?php echo number_format($item['price'], 2); ?></span>
+                        <span style="color: #6f0936;">$<?php echo number_format($item['final_price'], 2); ?></span>
+                    <?php else: ?>
+                        $<?php echo number_format($item['price'], 2); ?>
+                    <?php endif; ?>
+                </td>
+                <td><?php echo htmlspecialchars($item['quantity']); ?></td>
+                <td>
+                    <i class="fas fa-trash remove-icon" title="Remove from cart" onclick="removeFromCart(<?php echo $item['id']; ?>);"></i>
+                </td>
+            </tr>
+        <?php endforeach; ?>
+    <?php else: ?>
+        <tr>
+            <td colspan="5">Your cart is empty! <a href="products.php">Continue Shopping</a></td>
+        </tr>
+    <?php endif; ?>
+</tbody>
+
     </table>
 
     <div class="total" id="totalPrice">Total: $<?php echo number_format($total, 2); ?></div>
+    <div class="loading-spinner" id="loadingSpinner">Processing...</div>
 
     <button type="submit" class="checkout-button" onclick="prepareSelectedItems(event)">Checkout</button>
 </form>
 
 <script>
 function updateTotal() {
-    const checkboxes = document.querySelectorAll('.item-checkbox');
+    const checkboxes = document.querySelectorAll('.item-checkbox:checked');
     let total = 0;
     checkboxes.forEach(checkbox => {
-        if (checkbox.checked) {
-            const price = parseFloat(checkbox.getAttribute('data-price'));
-            const quantity = parseInt(checkbox.getAttribute('data-quantity'));
-            total += price * quantity;
-        }
+        const price = parseFloat(checkbox.getAttribute('data-price'));
+        const quantity = parseInt(checkbox.getAttribute('data-quantity'));
+        total += price * quantity;
     });
     document.getElementById('totalPrice').innerText = 'Total: $' + total.toFixed(2);
 }
+
 
 function prepareSelectedItems(event) {
     const checkboxes = document.querySelectorAll('.item-checkbox:checked');
     const selectedIds = Array.from(checkboxes).map(checkbox => checkbox.value);
 
     if (selectedIds.length === 0) {
-        event.preventDefault(); 
+        event.preventDefault();
         alert('No items selected for checkout!');
     } else {
         document.getElementById('selectedItems').value = selectedIds.join(',');
+    }
+}
 
-        // Debugging: Log selected IDs to the console
-        console.log("Selected IDs for checkout:", selectedIds);
-
-        selectedIds.forEach(id => {
-            const row = document.getElementById('item-' + id);
-            if (row) {
-                row.remove(); 
-            }
-        });
-
-        updateTotal(); 
+function confirmRemoveItem(itemId) {
+    if (confirm('Are you sure you want to remove this item from your cart?')) {
+        removeFromCart(itemId);
     }
 }
 
 function removeFromCart(itemId) {
+    document.getElementById('loadingSpinner').style.display = 'block';
     const xhr = new XMLHttpRequest();
     xhr.open('POST', 'cart.php', true);
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
     
     xhr.onload = function () {
+        document.getElementById('loadingSpinner').style.display = 'none';
         if (xhr.status === 200 && xhr.responseText === 'Item removed successfully') {
             const row = document.getElementById('item-' + itemId);
             if (row) {
-                row.remove();
-                updateTotal(); 
+                row.style.transition = "opacity 0.3s ease";
+                row.style.opacity = 0;
+                setTimeout(() => {
+                    row.remove();
+                    updateTotal();
+                }, 300);
             }
-            location.reload();
         } else {
             alert('Error removing item: ' + xhr.responseText);
         }
@@ -263,13 +292,10 @@ function removeFromCart(itemId) {
 
     xhr.send('item_id=' + itemId);
 }
+
 </script>
 
 <?php include 'footer.php'; ?>
 
 </body>
 </html>
-
-<?php
-$conn->close();
-?>
